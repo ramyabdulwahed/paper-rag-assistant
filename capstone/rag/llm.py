@@ -55,7 +55,7 @@ def call_ollama (prompt:str) -> str:
             "temperature": 0.2 #make answer less random
         }
     }
-    response = requests.post (OLLAMA_URL, json=payload,timeout=120)
+    response = requests.post (OLLAMA_URL, json=payload,timeout=180)
     response.raise_for_status() #If Ollama returns an error, Python raises an exception
 
     #Ollama returns something like this: { "model": "llama3.2:3b", "created_at": "...", "message": { "role": "assistant", "content": "The power of static is that it hides implementation details..." }, "done": True }

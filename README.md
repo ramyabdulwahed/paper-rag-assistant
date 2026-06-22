@@ -245,6 +245,111 @@ This project demonstrates more than a simple chatbot. It shows how to build an A
 The project combines backend engineering, frontend development, NLP, vector search, local LLM inference, and software design into one end-to-end application.
 
 
+
+
+
+## Evaluation
+
+I evaluated the AskThePaper RAG system using the uploaded PDF `16462-19663-1-PB.pdf`, an academic article titled *Using and Experiencing the Academic Library: A Multisite Observational Study of Space and Place*.
+
+The document was indexed using token-based chunking. The embedding model generated 384-dimensional vectors for each chunk. The goal of this evaluation was to test whether the system could answer document-grounded questions, refuse unrelated questions, and handle factual, methodological, numeric, table-based, and summarization prompts.
+
+
+### Test 1 — In-scope factual retrieval
+
+Question: What campuses was the data collected from?
+
+Expected: The system should identify the five institutions/campuses used in the study.
+
+Actual: The system correctly returned Grant MacEwan, Mount Royal, Southern Alberta Institute of Technology, Red Deer College, and Lethbridge College.
+
+Status: Pass
+
+### Test 2 — Out-of-scope refusal
+
+Question: Who is Cristiano Ronaldo?
+
+Expected: The system should refuse to answer because the information is not in the uploaded document.
+
+Actual: The system returned: “I don't know based on the provided document.”
+
+Status: Pass
+
+### Test 3 — Data collection methods
+
+Question: What methods were used to collect data?
+
+Expected: The system should identify seating sweeps, student questionnaires, and stratified sampling where needed.
+
+Actual: The system correctly returned seating sweeps, student questionnaires, and stratified sampling.
+
+Status: Pass
+
+### Test 4 — Numeric retrieval
+
+Question: How many individuals were observed during seating sweeps?
+
+Expected: The system should return the total number of individuals observed.
+
+Actual: The system correctly returned 9,268 individuals.
+
+Status: Pass
+
+### Test 5 — Table-heavy question
+
+Question: What were the most common activities students reported doing in the library?
+
+Expected: The system should retrieve the main reported activities from the relevant results/table section.
+
+Actual: The system returned a related answer about desktop/laptop use and reading/writing print materials, but did not fully capture the broader Table 4 activity list.
+
+Status: Pass
+
+### Test 6 — Broad summarization
+
+Question: Summarize the paper in 3 bullet points.
+
+Expected: The system should produce a high-level summary of the whole paper.
+
+Actual: The system produced a reasonable answer but focused too narrowly on methods and academic work, missing some broader themes from the abstract and discussion.
+
+Status: Pass
+
+
+### Summary of Evaluation
+
+The system performed well on factual, methodological, numeric, and out-of-scope questions. It successfully retrieved and used relevant document evidence to answer questions about the study institutions, data collection methods, and number of observed individuals. It also correctly refused to answer an unrelated question about Cristiano Ronaldo, showing that the system can avoid unsupported answers when the information is not present in the uploaded document.
+
+### Interpretation
+
+These results show that the RAG pipeline is working for targeted document questions. The system can retrieve relevant chunks, rerank them, and generate grounded answers using a local LLM. However, the evaluation also shows that standard RAG retrieval can struggle when a question requires information from structured tables or requires a full-document summary.
+
+### Current Strengths
+
+* Correctly answers factual questions grounded in the PDF.
+* Correctly handles numeric retrieval.
+* Correctly identifies data collection methods.
+* Correctly refuses unrelated out-of-scope questions.
+* Uses retrieved context to generate citation-style answers.
+* Demonstrates improved retrieval granularity through token-based chunking.
+
+
+### Testcase evidence
+
+![alt text](image.png)
+
+![alt text](image-1.png)
+
+![alt text](image-2.png)
+
+
+![alt text](image-3.png)
+
+![alt text](image-4.png)
+
+
+
+
 #### Day 10 app-building tools
 
 FastAPI = backend API framework.
@@ -281,6 +386,7 @@ Streamlit UI
 FastAPI backend
 ↓
 RAG pipeline later
+
 
 
 #### What we have now: Capstone

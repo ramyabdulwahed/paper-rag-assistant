@@ -8,6 +8,7 @@ import re
 CHROMA_DIR = "capstone/chroma_store"
 COLLECTION_NAME = "askaboutpaper"
 EMBED_MODEL_NAME = "all-MiniLM-L6-v2"
+CHUNKING_MODE = "token"
 
 client = chromadb.PersistentClient (path=CHROMA_DIR) #create a persistant(ex. saved to disk) chromadb client
 collection = client.get_or_create_collection (COLLECTION_NAME) #create/use collection
@@ -79,6 +80,36 @@ def chunk_text (text: str, chunk_size: int = 1000, overlap: int = 200) -> List[s
     return cleaned_chunks
 
 
+
+def get_embedding_tokenizer():
+    if hasattr (embed_model, "tokenizer"):
+        return embed_model.tokenizer
+    return embed_model._first_module().tokenizer
+
+def chunk_text_by_tokens(text: str, max_tokens: int = 200, overlap_tokens: int = 40) -> List[str]:
+    tokenizer = get_embedding_tokenizer()
+    token_ids = tokenizer.encode (text, add_special_tokens=False) #This converts text into token IDs.Tokens are not always words. A long word may become multiple tokens.
+
+    chunks = []
+    start = 0
+
+    while start < len(token_ids):
+        end = start + max_tokens #ex. 0 -200
+        chunk_ids = token_ids[start:end]
+
+        achunk_text = tokenizer.decode (chunk_ids, skip_special_tokens=True).strip()
+
+        if achunk_text:
+            chunks.append (achunk_text)
+        if end >= len (token_ids):
+            break
+        start += max_tokens - overlap_tokens #next token will start at 160 for overlap
+    return chunks
+
+
+
+
+
 def index_pdf (pdf_path: str) -> Dict[str, Any]:
     pdf_path_obj = Path (pdf_path) #PDF path into a Path object. This lets us use: pdf_path_obj.name pdf_path_obj.stem Example: pdf_path = capstone/data/uploads/contract.pdf pdf_path_obj.name = contract.pdf pdf_path_obj.stem = contract
     deleted_old_chunks = clear_collection() #delete old pdf before adding new one
@@ -91,7 +122,16 @@ def index_pdf (pdf_path: str) -> Dict[str, Any]:
         page_text = p["text"]
 
         #call chunking function to break page further into chunks
-        page_chunks = chunk_text(page_text) # page_chunks will be list of strings
+        #page_chunks = chunk_text(page_text) # page_chunks will be list of strings
+
+        if CHUNKING_MODE == "token":
+            page_chunks = chunk_text_by_tokens(
+                page_text,
+                max_tokens=200,
+                overlap_tokens=40
+            )
+        else:
+            page_chunks = chunk_text(page_text)
 
         for chunk_number, chunk in enumerate (page_chunks):
             
