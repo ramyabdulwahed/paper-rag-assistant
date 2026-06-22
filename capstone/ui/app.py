@@ -22,46 +22,46 @@ with st.sidebar:
         else:
             st.error (f" failed: {r.text}")
 
-    if "history" not in st.session_state: #Sreamlit reruns your script from top to bottom every time the user interacts with it. That means without memory, chat messages would disappear. st.session_state stores data between reruns.
-        st.session_state.history = []
-    
-    for m in st.session_state.history:
-        with st.chat_message(m["role"]):
-            st.markdown(m["content"]) #Displays the message content. Markdown means it can render: bold text lists code links
+if "history" not in st.session_state: #Sreamlit reruns your script from top to bottom every time the user interacts with it. That means without memory, chat messages would disappear. st.session_state stores data between reruns.
+    st.session_state.history = []
 
-    #This line: if q := st.chat_input("Ask about the document..."): is similar to: q = st.chat_input("Ask about the document...") if q: So if the user types a question, it gets stored in q.
-    if q := st.chat_input("Ask about the document..."): #Shows an input box at the bottom of the app. The placeholder text is: Ask about the document...
-        st.session_state.history.append({"role": "user", "content": q})
+for m in st.session_state.history:
+    with st.chat_message(m["role"]):
+        st.markdown(m["content"]) #Displays the message content. Markdown means it can render: bold text lists code links
 
-        with st.chat_message("user"):
-            st.markdown(q) #show user message immediately
+#This line: if q := st.chat_input("Ask about the document..."): is similar to: q = st.chat_input("Ask about the document...") if q: So if the user types a question, it gets stored in q.
+if q := st.chat_input("Ask about the document..."): #Shows an input box at the bottom of the app. The placeholder text is: Ask about the document...
+    st.session_state.history.append({"role": "user", "content": q})
 
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."): #hows a loading spinner while the backend is working
-                #send request to backend. This matches our backend model: class ChatRequest(BaseModel): question: str k: int = 5
-                r = requests.post(
-                    f"{API}/chat",
-                    json={"question": q, "k": 5}
-                )
+    with st.chat_message("user"):
+        st.markdown(q) #show user message immediately
 
-                if r.ok:
-                    data = r.json()
-                    answer = data["answer"]
-                    sources = data["sources"]
-                else:
-                    answer = f"Request failed: {r.text}"
-                    sources = []
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."): #hows a loading spinner while the backend is working
+            #send request to backend. This matches our backend model: class ChatRequest(BaseModel): question: str k: int = 5
+            r = requests.post(
+                f"{API}/chat",
+                json={"question": q, "k": 5}
+            )
 
-            st.markdown(answer) #Displays the assistant answer.
+            if r.ok:
+                data = r.json()
+                answer = data["answer"]
+                sources = data["sources"]
+            else:
+                answer = f"Request failed: {r.text}"
+                sources = []
 
-            with st.expander("Sources"): #Creates a collapsible section called Sources
-                if sources:
-                    for s in sources:
-                        st.caption(s) #show sources
-                else:
-                    st.caption("No sources yet.")
-        #This stores the assistant answer in chat history. Now the conversation has both: {"role": "user", "content": q} {"role": "assistant", "content": answer}
-        st.session_state.history.append({"role": "assistant", "content": answer}) 
+        st.markdown(answer) #Displays the assistant answer.
+
+        with st.expander("Sources"): #Creates a collapsible section called Sources
+            if sources:
+                for s in sources:
+                    st.caption(s) #show sources
+            else:
+                st.caption("No sources yet.")
+    #This stores the assistant answer in chat history. Now the conversation has both: {"role": "user", "content": q} {"role": "assistant", "content": answer}
+    st.session_state.history.append({"role": "assistant", "content": answer}) 
 
 
 
