@@ -1,6 +1,6 @@
 
 
-# AskThePaper — PDF RAG Assistant
+# AskThePaper - PDF RAG Assistant
 
 AskThePaper is a local Retrieval-Augmented Generation (RAG) application that allows a user to upload a PDF and ask questions about its contents. The system extracts text from the uploaded document, splits it into searchable chunks, embeds those chunks into a vector database, retrieves the most relevant evidence for a user question, reranks the retrieved chunks with a cross-encoder, and uses a local LLM to generate a grounded answer with citations back to the source pages.
 
